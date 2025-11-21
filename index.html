@@ -164,6 +164,15 @@
     box-shadow:0 0 0 1px rgba(0,0,0,0.9);
   }
 
+  button.party-on{
+    border-color: var(--accent-strong);
+    box-shadow:
+      0 0 16px rgba(255,255,255,0.5),
+      0 0 32px rgba(31,139,255,0.9);
+    background: radial-gradient(circle at top, #1f8bff, #050a1d);
+  }
+
+  
   .pill{
     display:inline-flex;
     align-items:center;
@@ -362,15 +371,17 @@
 
       <audio id="audio" controls preload="none"></audio>
 
-      <div class="controls" style="margin-top:10px">
-        <button id="btnPrev">⏮️ Anterior</button>
-        <button id="btnPlay">▶️ Reproducir</button>
-        <button id="btnPause">⏸️ Pausa</button>
-        <button id="btnStop">⏹️ Stop</button>
-        <button id="btnNext">⏭️ Siguiente</button>
-        <div class="grow"></div>
-        <label class="muted">Volumen <input id="vol" type="range" min="0" max="1" step="0.01" value="1" /></label>
-      </div>
+ <div class="controls" style="margin-top:10px">
+  <button id="btnPrev">⏮️ Anterior</button>
+  <button id="btnPlay">▶️ Reproducir</button>
+  <button id="btnPause">⏸️ Pausa</button>
+  <button id="btnStop">⏹️ Stop</button>
+  <button id="btnNext">⏭️ Siguiente</button>
+  <button id="btnParty">🌈 Party</button>
+  <div class="grow"></div>
+  <label class="muted">Volumen <input id="vol" type="range" min="0" max="1" step="0.01" value="1" /></label>
+</div>
+
 
       <div class="row" style="margin-top:12px">
         <button id="btnReload">🔄 Recargar</button>
@@ -398,6 +409,7 @@
   const LS_LOGOS      = 'bapp.radio.showLogos';
 
   // DOM
+  const $btnParty = document.getElementById('btnParty');
   const $status   = document.getElementById('status');
   const $q        = document.getElementById('q');
   const $btnReset = document.getElementById('btnReset');
@@ -429,6 +441,8 @@
   const $viz      = document.getElementById('viz');
 
   // Estado
+  let isParty = false;
+  let $playerCard = null;
   let stations = [];           // {name,url,logo,group, nameL, groupL}
   let filteredIdx = [];        // índices (sobre stations) tras filtro
   let onlyFavs = false;
@@ -777,7 +791,7 @@
     }
   }
 
-    // ---------- Equalizador visual (fake) ----------
+      // ---------- Equalizador visual (fake) + PARTY MODE ----------
   function createVizBars(count){
     if(!$viz) return;
     $viz.innerHTML = '';
@@ -797,51 +811,78 @@
     }
     if(vizBars.length){
       vizBars.forEach(bar=>{
-        bar.style.transform = 'scaleY(0.25)';
-        bar.style.opacity = '0.18';
+        bar.style.transform = 'scaleY(0.2)';
+        bar.style.opacity = '0.15';
       });
-      document.documentElement.style.setProperty('--accent-glow', '0.25');
     }
+    if($playerCard && isParty){
+      $playerCard.style.background = '';
+      $playerCard.style.boxShadow = '';
+    }
+    document.documentElement.style.setProperty('--accent-glow', '0.25');
   }
 
   function startViz(){
-    if(!vizBars.length) createVizBars(40); // MÁS BARRAS
+    if(!vizBars.length) createVizBars(48); // MÁS BARRAS
     stopViz();
 
     vizTimer = setInterval(()=>{
-      // si no hay audio sonando, bajar animación
       if($audio.paused || $audio.readyState < 2){
         vizBars.forEach(bar=>{
-          bar.style.transform = 'scaleY(0.25)';
-          bar.style.opacity = '0.18';
+          bar.style.transform = 'scaleY(0.2)';
+          bar.style.opacity = '0.15';
         });
+        if($playerCard && isParty){
+          $playerCard.style.background = '';
+          $playerCard.style.boxShadow = '';
+        }
         document.documentElement.style.setProperty('--accent-glow', '0.25');
         return;
       }
 
-      const base = $audio.volume || 1;  // usamos volumen real
+      const base = ($audio.volume || 1);
+      const t = performance.now() / 160; // tiempo para ondas
       let levelSum = 0;
 
       vizBars.forEach((bar, i)=>{
-        // las barras del centro se mueven más (se ve más "pro")
-        const bandFactor = 0.5 + Math.sin((i / (vizBars.length-1)) * Math.PI) * 0.7; // 0.5–1.2
-        const noise = Math.random();   // 0–1
-        const norm = Math.min(1, (noise * 0.9 + 0.3) * base * bandFactor); // amplificado
-        const scale = 0.15 + norm * 3.0;   // MÁS ALTO (antes 1.7 aprox)
-
-        bar.style.transform = `scaleY(${scale})`;
-        bar.style.opacity   = 0.25 + norm * 0.9;
-
-        const hue = 190 + norm * 60;       // azul → cian/brillo
-        const light = 40 + norm * 25;
-        bar.style.background = `linear-gradient(to top, rgba(5,15,35,0.4), hsl(${hue}, 95%, ${light}%))`;
-
+        const n = vizBars.length;
+        const centerFactor = 0.6 + Math.sin((i / (n-1)) * Math.PI) * 0.9;  // centro más fuerte
+        const wave = 0.5 + 0.5*Math.sin((i*0.35) + t);                     // animación suave
+        const noise = Math.random()*0.7 + 0.3;                             // mínimo 0.3
+        const raw = (noise * wave * centerFactor * base) * 1.4;            // AMPLIFICADO
+        const norm = Math.min(1, raw);
         levelSum += norm;
+
+        const scale = 0.1 + norm * 4.8;   // ALTURA MUCHÍSIMO MÁS ALTA
+        bar.style.transform = `scaleY(${scale})`;
+        bar.style.opacity   = 0.2 + norm * 0.9;
+
+        const hue = 190 + norm * 90;      // azul → cian/verdoso brillante
+        const light = 40 + norm * 30;
+        bar.style.background = `linear-gradient(to top, rgba(5,15,35,0.45), hsl(${hue}, 98%, ${light}%))`;
       });
 
       const avg = levelSum / vizBars.length;
-      document.documentElement.style.setProperty('--accent-glow', String(0.3 + avg * 0.7));
-    }, 60); // más rápido (antes 80ms)
+      document.documentElement.style.setProperty('--accent-glow', String(0.35 + avg * 0.9));
+
+      // PARTY MODE: mover el fondo y glow del reproductor
+      if(isParty && $playerCard){
+        const strength = Math.min(1, avg * 1.6); // cuánta "energía" hay
+        const hueBase = 210 + strength * 40;     // tonos azulados
+        const sat = 70 + strength * 25;
+        const light1 = 10 + strength * 15;
+        const light2 = 22 + strength * 28;
+
+        $playerCard.style.background =
+          `linear-gradient(135deg, hsl(${hueBase}, ${sat}%, ${light1}%), hsl(${hueBase+15}, ${sat}%, ${light2}%))`;
+
+        const glow = 0.4 + strength * 1.3;
+        $playerCard.style.boxShadow =
+          `0 18px 35px rgba(0,0,0,0.7),
+           0 0 0 1px rgba(10,40,80,0.7),
+           0 0 40px rgba(31,139,255,${glow})`;
+      }
+    }, 50); // refresco rápido → se siente más vivo
   }
 
   $audio.addEventListener('play', () => {
@@ -853,6 +894,7 @@
   $audio.addEventListener('ended', () => {
     stopViz();
   });
+
 
 
   // ---------- Restaurar última ----------
@@ -935,6 +977,22 @@
   $btnAll.addEventListener('click', () => { onlyFavs = false; applyFilterDebounced(); });
   $btnReload.addEventListener('click', () => { startLoad(); });
 
+  $btnParty.addEventListener('click', () => {
+    isParty = !isParty;
+    $btnParty.classList.toggle('party-on', isParty);
+    if(isParty){
+      $btnParty.textContent = '🌈 Party ON';
+    } else {
+      $btnParty.textContent = '🌈 Party';
+      // reset visual del card
+      if($playerCard){
+        $playerCard.style.background = '';
+        $playerCard.style.boxShadow = '';
+      }
+      document.documentElement.style.setProperty('--accent-glow', '0.25');
+    }
+  });
+  
   $btnExportM3U.addEventListener('click', exportM3U);
   $btnExportJSON.addEventListener('click', exportJSON);
 
@@ -971,11 +1029,15 @@
     $toggleLogos.checked = showLogos;
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
     startLoad();
-    createVizBars(40); // preparar MÁS barras
-
+    createVizBars(48); // MÁS BARRAS
+    const cards = document.querySelectorAll('.card');
+    if (cards.length > 1) {
+      $playerCard = cards[1]; // la segunda card = reproductor
+    }
   });
+
 })();
 </script>
 
