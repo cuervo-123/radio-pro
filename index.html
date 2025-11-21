@@ -270,31 +270,33 @@
   .controls .grow{flex:1}
 
   /* VISUALIZADOR TIPO ECUALIZADOR */
-  .viz{
+    .viz{
     margin:10px 0 6px;
-    height:40px;
+    height:60px; /* antes 40px */
     border-radius:999px;
     background:radial-gradient(circle at top,#040b18,#02040b);
     border:1px solid rgba(30,60,110,0.95);
     box-shadow:
       0 0 0 1px rgba(0,0,0,0.9),
-      0 0 18px rgba(31,139,255,0.55);
+      0 0 22px rgba(31,139,255,0.7);
     padding:6px 10px;
     display:flex;
     align-items:flex-end;
-    gap:4px;
+    gap:3px;
     overflow:hidden;
   }
 
   .viz .bar{
     flex:1;
+    min-width:3px;              /* barras más delgadas pero visibles */
     border-radius:999px;
     background:linear-gradient(to top,#0c213f,#1f8bff);
     transform-origin:bottom;
-    transform:scaleY(.3);
-    opacity:.25;
-    transition:opacity .12s linear;
+    transform:scaleY(.25);
+    opacity:.18;
+    transition:opacity .08s linear;
   }
+
 
   audio{
     width:100%;
@@ -775,7 +777,7 @@
     }
   }
 
-  // ---------- Equalizador visual (fake) ----------
+    // ---------- Equalizador visual (fake) ----------
   function createVizBars(count){
     if(!$viz) return;
     $viz.innerHTML = '';
@@ -795,41 +797,51 @@
     }
     if(vizBars.length){
       vizBars.forEach(bar=>{
-        bar.style.transform = 'scaleY(0.3)';
-        bar.style.opacity = '0.2';
+        bar.style.transform = 'scaleY(0.25)';
+        bar.style.opacity = '0.18';
       });
       document.documentElement.style.setProperty('--accent-glow', '0.25');
     }
   }
 
   function startViz(){
-    if(!vizBars.length) createVizBars(24);
+    if(!vizBars.length) createVizBars(40); // MÁS BARRAS
     stopViz();
+
     vizTimer = setInterval(()=>{
+      // si no hay audio sonando, bajar animación
       if($audio.paused || $audio.readyState < 2){
         vizBars.forEach(bar=>{
-          bar.style.transform = 'scaleY(0.3)';
-          bar.style.opacity = '0.2';
+          bar.style.transform = 'scaleY(0.25)';
+          bar.style.opacity = '0.18';
         });
         document.documentElement.style.setProperty('--accent-glow', '0.25');
         return;
       }
-      const base = $audio.volume || 1;
+
+      const base = $audio.volume || 1;  // usamos volumen real
       let levelSum = 0;
+
       vizBars.forEach((bar, i)=>{
-        const noise = Math.random() * 0.8 + 0.2; // 0.2–1.0
-        const norm = noise * base;              // escala por volumen
-        const scale = 0.3 + norm * 1.7;
+        // las barras del centro se mueven más (se ve más "pro")
+        const bandFactor = 0.5 + Math.sin((i / (vizBars.length-1)) * Math.PI) * 0.7; // 0.5–1.2
+        const noise = Math.random();   // 0–1
+        const norm = Math.min(1, (noise * 0.9 + 0.3) * base * bandFactor); // amplificado
+        const scale = 0.15 + norm * 3.0;   // MÁS ALTO (antes 1.7 aprox)
+
         bar.style.transform = `scaleY(${scale})`;
-        bar.style.opacity   = 0.25 + norm*0.75;
-        const hue = 190 + norm*40;
-        const light = 35 + norm*20;
-        bar.style.background = `linear-gradient(to top, rgba(5,15,35,0.3), hsl(${hue}, 90%, ${light}%))`;
+        bar.style.opacity   = 0.25 + norm * 0.9;
+
+        const hue = 190 + norm * 60;       // azul → cian/brillo
+        const light = 40 + norm * 25;
+        bar.style.background = `linear-gradient(to top, rgba(5,15,35,0.4), hsl(${hue}, 95%, ${light}%))`;
+
         levelSum += norm;
       });
+
       const avg = levelSum / vizBars.length;
-      document.documentElement.style.setProperty('--accent-glow', String(0.25 + avg*0.5));
-    }, 80);
+      document.documentElement.style.setProperty('--accent-glow', String(0.3 + avg * 0.7));
+    }, 60); // más rápido (antes 80ms)
   }
 
   $audio.addEventListener('play', () => {
@@ -841,6 +853,7 @@
   $audio.addEventListener('ended', () => {
     stopViz();
   });
+
 
   // ---------- Restaurar última ----------
   function restoreLast(){
@@ -960,7 +973,8 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     startLoad();
-    createVizBars(24); // preparar barras
+    createVizBars(40); // preparar MÁS barras
+
   });
 })();
 </script>
