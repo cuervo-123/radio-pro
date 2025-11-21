@@ -424,7 +424,6 @@
   const $btnExportJSON= document.getElementById('btnExportJSON');
   const $vol      = document.getElementById('vol');
 
-  // NUEVO: contenedor del ecualizador
   const $viz      = document.getElementById('viz');
 
   // Estado
@@ -435,12 +434,9 @@
   let currentFilteredPos = -1; // posición dentro de filteredIdx
   let hls = null;
 
-  // Visualizador Web Audio
-  let audioCtx = null;
-  let analyser = null;
+  // Equalizador fake (visual)
   let vizBars = [];
-  let gainNode = null;
-  let mediaSourceNode = null;
+  let vizTimer = null;
 
   const favorites = new Set(JSON.parse(localStorage.getItem(LS_FAVORITES) || '[]'));
   updateFavCount();
@@ -458,7 +454,6 @@
     if(isFav(url)) favorites.delete(url); else favorites.add(url);
     localStorage.setItem(LS_FAVORITES, JSON.stringify([...favorites]));
     updateFavCount();
-    // si estamos filtrando por favoritos, re-aplicar filtro
     if(onlyFavs) applyFilterDebounced();
   }
   function updateFavCount(){ $favCount.textContent = favorites.size; }
@@ -508,7 +503,6 @@
 
         function processLines(chunk){
           const lines = chunk.split(/\\r?\\n/);
-          // última línea puede quedar incompleta, devolverla
           const lastLine = lines.pop();
           for(const lineRaw of lines){
             const line = lineRaw.trim();
@@ -525,7 +519,6 @@
                 group: (attrs['group-title'] || '').trim()
               };
             } else if(line.startsWith('#')){
-              // ignore
             } else {
               const url = line;
               const name = (pending && pending.name) ? pending.name : guessNameFromUrl(url);
@@ -545,10 +538,8 @@
             buf += decoder.decode(value, {stream:true});
           }
         }
-        // flush final
         buf = processLines(buf);
         if(buf.trim() && !buf.trim().startsWith('#')){
-          // si quedara una URL sola
           const urlLine = buf.trim();
           const name = guessNameFromUrl(urlLine);
           pushStation(name, urlLine, '', '');
@@ -578,7 +569,6 @@
       }));
       stations.push(...items);
       $status.textContent = `Cargadas ${stations.length}…`;
-      // mantener filtro actualizado progresivamente
       appendToFilter(items.length);
     } else if(type === 'done'){
       $status.textContent = `Listo: ${stations.length} emisoras`;
@@ -605,7 +595,6 @@
   }
 
   function appendToFilter(addedCount){
-    // cuando llegan batches, añadimos rápidamente a filtered según lo actual
     const q = $q.value.toLowerCase().trim();
     const start = stations.length - addedCount;
     for(let i=start;i<stations.length;i++){
@@ -620,7 +609,6 @@
   }
 
   function finalizeFilter(){
-    // asegurar consistencia (p.ej. si se cambió filtro durante la carga)
     filteredIdx = computeFilteredIndices();
     $count.textContent = filteredIdx.length;
     updateVirtual(true);
@@ -654,7 +642,7 @@
       const idx = filteredIdx[i];
       const el = makeItem(idx);
       el.style.position = 'absolute';
-      el.style.top = (i * ITEM_HEIGHT + 4) + 'px'; // +4 por margen visual
+      el.style.top = (i * ITEM_HEIGHT + 4) + 'px';
       el.dataset.pos = String(i);
       frag.appendChild(el);
     }
@@ -666,7 +654,6 @@
   }
 
   $listWrap.addEventListener('scroll', () => {
-    // actualizar vista sin bloquear la UI
     requestAnimationFrame(()=>updateVirtual(false));
   });
 
@@ -726,7 +713,6 @@
     li.addEventListener('dblclick', () => playByAbsoluteIndex(absIndex));
     li.addEventListener('keydown', (ev) => { if(ev.key==='Enter') playByAbsoluteIndex(absIndex); });
 
-    // marcar activo
     const pos = Number(li.dataset.pos);
     if(pos === currentFilteredPos) li.classList.add('active');
 
@@ -789,7 +775,7 @@
     }
   }
 
-  // ---------- Visualizador de audio (luces por beats) ----------
+  // ---------- Equalizador visual (fake) ----------
   function createVizBars(count){
     if(!$viz) return;
     $viz.innerHTML = '';
@@ -802,82 +788,58 @@
     }
   }
 
-  function startVizLoop(){
-    if(!analyser || !vizBars.length) return;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+  function stopViz(){
+    if(vizTimer){
+      clearInterval(vizTimer);
+      vizTimer = null;
+    }
+    if(vizBars.length){
+      vizBars.forEach(bar=>{
+        bar.style.transform = 'scaleY(0.3)';
+        bar.style.opacity = '0.2';
+      });
+      document.documentElement.style.setProperty('--accent-glow', '0.25');
+    }
+  }
 
-    function draw(){
-      if(!analyser) return;
-      analyser.getByteFrequencyData(dataArray);
-      const step = Math.floor(bufferLength / vizBars.length) || 1;
+  function startViz(){
+    if(!vizBars.length) createVizBars(24);
+    stopViz();
+    vizTimer = setInterval(()=>{
+      if($audio.paused || $audio.readyState < 2){
+        vizBars.forEach(bar=>{
+          bar.style.transform = 'scaleY(0.3)';
+          bar.style.opacity = '0.2';
+        });
+        document.documentElement.style.setProperty('--accent-glow', '0.25');
+        return;
+      }
+      const base = $audio.volume || 1;
       let levelSum = 0;
-
-      for(let i=0;i<vizBars.length;i++){
-        let sum = 0;
-        for(let j=0;j<step;j++){
-          sum += dataArray[i*step + j] || 0;
-        }
-        const value = sum / step;       // 0-255
-        levelSum += value;
-        const norm = value / 255;       // 0-1
-        const scale = 0.3 + norm*1.7;   // altura
-        const bar = vizBars[i];
-
+      vizBars.forEach((bar, i)=>{
+        const noise = Math.random() * 0.8 + 0.2; // 0.2–1.0
+        const norm = noise * base;              // escala por volumen
+        const scale = 0.3 + norm * 1.7;
         bar.style.transform = `scaleY(${scale})`;
         bar.style.opacity   = 0.25 + norm*0.75;
-
-        const hue = 190 + norm*40; // azul turquesa → azul eléctrico
+        const hue = 190 + norm*40;
         const light = 35 + norm*20;
         bar.style.background = `linear-gradient(to top, rgba(5,15,35,0.3), hsl(${hue}, 90%, ${light}%))`;
-      }
-
-      const avg = (levelSum / vizBars.length) / 255;
+        levelSum += norm;
+      });
+      const avg = levelSum / vizBars.length;
       document.documentElement.style.setProperty('--accent-glow', String(0.25 + avg*0.5));
-
-      requestAnimationFrame(draw);
-    }
-    draw();
+    }, 80);
   }
 
-  async function setupVisualizer(){
-    if(audioCtx || !$viz) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if(!AC) return;
-    try{
-      audioCtx = new AC();
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-
-      gainNode = audioCtx.createGain();
-      const initialVol = Number($vol.value) || 1;
-      gainNode.gain.value = initialVol;
-
-      mediaSourceNode = audioCtx.createMediaElementSource($audio);
-      mediaSourceNode.connect(analyser);
-      analyser.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      // para evitar doble audio: usamos solo el path de Web Audio
-      $audio.muted = true;
-
-      createVizBars(24);
-      startVizLoop();
-    }catch(err){
-      console.warn('No se pudo inicializar el visualizador:', err);
-    }
-  }
-
-  $audio.addEventListener('play', async () => {
-    try{
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC) return; // navegador sin Web Audio → solo audio normal
-      if(!audioCtx){
-        await setupVisualizer();
-      }else if(audioCtx.state === 'suspended'){
-        await audioCtx.resume();
-      }
-    }catch(_){}
+  $audio.addEventListener('play', () => {
+    startViz();
+  });
+  $audio.addEventListener('pause', () => {
+    stopViz();
+  });
+  $audio.addEventListener('ended', () => {
+    stopViz();
   });
 
   // ---------- Restaurar última ----------
@@ -888,7 +850,6 @@
       if(pos !== -1){
         currentFilteredPos = pos;
         playByAbsoluteIndex(savedAbs);
-        // scroll hacia ese elemento
         const y = pos * ITEM_HEIGHT - 8;
         $listWrap.scrollTop = Math.max(0, y);
         return;
@@ -950,11 +911,7 @@
 
   $vol.addEventListener('input', () => {
     const val = Number($vol.value);
-    if(gainNode){
-      gainNode.gain.value = val;
-    }else{
-      $audio.volume = val;
-    }
+    $audio.volume = val;
     localStorage.setItem(LS_VOLUME, String(val));
   });
 
@@ -992,16 +949,21 @@
   const vPrev = Number(localStorage.getItem(LS_VOLUME));
   if(Number.isFinite(vPrev)){
     $vol.value = vPrev;
-    $audio.volume = vPrev; // fallback cuando aún no hay visualizador
+    $audio.volume = vPrev;
   }
 
   const logosPrev = localStorage.getItem(LS_LOGOS);
-  if(logosPrev !== null){ showLogos = logosPrev === '1'; $toggleLogos.checked = showLogos; }
+  if(logosPrev !== null){
+    showLogos = logosPrev === '1';
+    $toggleLogos.checked = showLogos;
+  }
 
   window.addEventListener('DOMContentLoaded', () => {
     startLoad();
+    createVizBars(24); // preparar barras
   });
 })();
 </script>
+
 </body>
 </html>
