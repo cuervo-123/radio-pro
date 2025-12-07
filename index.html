@@ -279,9 +279,9 @@
   .controls .grow{flex:1}
 
   /* VISUALIZADOR TIPO ECUALIZADOR */
-    .viz{
+  .viz{
     margin:10px 0 6px;
-    height:60px; /* antes 40px */
+    height:60px;
     border-radius:999px;
     background:radial-gradient(circle at top,#040b18,#02040b);
     border:1px solid rgba(30,60,110,0.95);
@@ -297,15 +297,14 @@
 
   .viz .bar{
     flex:1;
-    min-width:3px;              /* barras más delgadas pero visibles */
+    min-width:3px;
     border-radius:999px;
     background:linear-gradient(to top,#0c213f,#1f8bff);
     transform-origin:bottom;
     transform:scaleY(.25);
     opacity:.18;
-    transition:opacity .08s linear;
+    transition: transform .08s linear, opacity .08s linear;
   }
-
 
   audio{
     width:100%;
@@ -371,17 +370,16 @@
 
       <audio id="audio" controls preload="none"></audio>
 
- <div class="controls" style="margin-top:10px">
-  <button id="btnPrev">⏮️ Anterior</button>
-  <button id="btnPlay">▶️ Reproducir</button>
-  <button id="btnPause">⏸️ Pausa</button>
-  <button id="btnStop">⏹️ Stop</button>
-  <button id="btnNext">⏭️ Siguiente</button>
-  <button id="btnParty">🌈 Party</button>
-  <div class="grow"></div>
-  <label class="muted">Volumen <input id="vol" type="range" min="0" max="1" step="0.01" value="1" /></label>
-</div>
-
+      <div class="controls" style="margin-top:10px">
+        <button id="btnPrev">⏮️ Anterior</button>
+        <button id="btnPlay">▶️ Reproducir</button>
+        <button id="btnPause">⏸️ Pausa</button>
+        <button id="btnStop">⏹️ Stop</button>
+        <button id="btnNext">⏭️ Siguiente</button>
+        <button id="btnParty">🌈 Party</button>
+        <div class="grow"></div>
+        <label class="muted">Volumen <input id="vol" type="range" min="0" max="1" step="0.01" value="1" /></label>
+      </div>
 
       <div class="row" style="margin-top:12px">
         <button id="btnReload">🔄 Recargar</button>
@@ -442,6 +440,7 @@
 
   // Estado
   let isParty = false;
+  let isPlaying = false; // FLAG de reproducción real
   let $playerCard = null;
   let stations = [];           // {name,url,logo,group, nameL, groupL}
   let filteredIdx = [];        // índices (sobre stations) tras filtro
@@ -461,7 +460,7 @@
   function encodeUrlMaybe(u){
     try {
       const abs = new URL(u, window.location.href);
-      if (/^https?:/i.test(abs.protocol)) return abs.href;
+      if (/^https?:/i.test(abs.protocol)) return abs.href;   // devolver absoluta http(s)
     } catch(_) {}
     return encodeURI(u);
   }
@@ -485,22 +484,31 @@
   }
 
   // ---------- Worker (stream parser) ----------
+  // (IMPORTANTE: comentario con //, no con / solo)
   const workerSrc = `
     self.onmessage = async (e) => {
       const { url, batchSize } = e.data;
       try{
+        // Base real del playlist (url ya viene absoluta desde el hilo principal)
+        const base = new URL(url);
+
         const res = await fetch(url, { cache: 'no-store' });
         if(!res.ok) throw new Error('HTTP ' + res.status);
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
+
         let { value, done } = await reader.read();
         let buf = value ? decoder.decode(value, {stream:true}) : '';
         let out = [];
         let pending = null;
-        const attrRe = /([\\w-]+)="([^"]*)"/g;
 
-        function pushStation(name, url, logo, group){
-          out.push({ name, url, logo, group });
+        const attrRe = /([\\w-]+)="([^"]*)"/g; // se resetea en cada cabecera
+
+        function pushStation(name, u, logo, group){
+          // Resolver URL relativa contra la base del M3U
+          let abs;
+          try { abs = new URL(u, base).href; } catch { abs = u; }
+          out.push({ name, url: abs, logo, group });
           if(out.length >= batchSize){
             self.postMessage({ type:'batch', items: out });
             out = [];
@@ -509,9 +517,9 @@
 
         function guessNameFromUrl(u){
           try{
-            const p = new URL(u, location.href);
-            const last = p.pathname.split('/').filter(Boolean).pop() || p.host;
-            return decodeURIComponent((last || '').replace(/\\.[a-z0-9]+$/i,'')).replace(/[_\\-]+/g,' ').trim() || p.host;
+            const abs = new URL(u, base);
+            const last = abs.pathname.split('/').filter(Boolean).pop() || abs.host;
+            return decodeURIComponent((last || '').replace(/\\.[a-z0-9]+$/i,'')).replace(/[_\\-]+/g,' ').trim() || abs.host;
           }catch{
             return u;
           }
@@ -523,24 +531,33 @@
           for(const lineRaw of lines){
             const line = lineRaw.trim();
             if(!line || line.startsWith('#EXTM3U')) continue;
+
             if(line.startsWith('#EXTINF')){
               const commaIdx = line.indexOf(',');
               const head = commaIdx>=0 ? line.slice(0, commaIdx) : line;
               const displayName = commaIdx>=0 ? line.slice(commaIdx+1).trim() : '';
               const attrs = {};
+
+              // RESET del regex global
+              attrRe.lastIndex = 0;
               let m; while((m = attrRe.exec(head))){ attrs[m[1]] = m[2]; }
+
               pending = {
                 name: (attrs['tvg-name'] || displayName || '').trim(),
                 logo: (attrs['tvg-logo'] || attrs['logo'] || '').trim(),
                 group: (attrs['group-title'] || '').trim()
               };
+
             } else if(line.startsWith('#')){
+              // otras directivas: ignorar
+
             } else {
-              const url = line;
-              const name = (pending && pending.name) ? pending.name : guessNameFromUrl(url);
+              // URL
+              const urlLine = line;
+              const name = (pending && pending.name) ? pending.name : guessNameFromUrl(urlLine);
               const logo = pending && pending.logo ? pending.logo : '';
               const group = pending && pending.group ? pending.group : '';
-              pushStation(name, url, logo, group);
+              pushStation(name, urlLine, logo, group);
               pending = null;
             }
           }
@@ -555,11 +572,15 @@
           }
         }
         buf = processLines(buf);
+
+        // Si queda una última línea suelta que parece URL
         if(buf.trim() && !buf.trim().startsWith('#')){
           const urlLine = buf.trim();
           const name = guessNameFromUrl(urlLine);
           pushStation(name, urlLine, '', '');
         }
+        // Si quedó pending sin URL, lo ignoramos
+
         if(out.length) self.postMessage({ type:'batch', items: out });
         self.postMessage({ type:'done' });
       }catch(err){
@@ -763,6 +784,8 @@
     highlightActive();
     localStorage.setItem(LS_LAST_INDEX, String(absIndex));
 
+    // Reset reproducción
+    isPlaying = false;
     $audio.pause();
     $audio.removeAttribute('src');
     cleanupHls();
@@ -773,7 +796,12 @@
         hls = new Hls({enableWorker:true, lowLatencyMode:true});
         hls.loadSource(url);
         hls.attachMedia($audio);
+
+        // Reintentos de play en etapas clave de HLS
         hls.on(Hls.Events.MANIFEST_PARSED, () => { $audio.play().catch(()=>{}); });
+        hls.on(Hls.Events.LEVEL_LOADED,    () => { $audio.play().catch(()=>{}); });
+        hls.on(Hls.Events.FRAG_BUFFERED,   () => { $audio.play().catch(()=>{}); });
+
         hls.on(Hls.Events.ERROR, (_, data) => {
           if(data.fatal){
             cleanupHls();
@@ -791,7 +819,7 @@
     }
   }
 
-      // ---------- Equalizador visual (fake) + PARTY MODE ----------
+  // ---------- Equalizador visual (fake) + PARTY MODE ----------
   function createVizBars(count){
     if(!$viz) return;
     $viz.innerHTML = '';
@@ -827,7 +855,8 @@
     stopViz();
 
     vizTimer = setInterval(()=>{
-      if($audio.paused || $audio.readyState < 2){
+      // Nos guiamos por isPlaying, no por readyState
+      if(!$audio || !isPlaying){
         vizBars.forEach(bar=>{
           bar.style.transform = 'scaleY(0.2)';
           bar.style.opacity = '0.15';
@@ -841,23 +870,23 @@
       }
 
       const base = ($audio.volume || 1);
-      const t = performance.now() / 160; // tiempo para ondas
+      const t = performance.now() / 160;
       let levelSum = 0;
 
       vizBars.forEach((bar, i)=>{
         const n = vizBars.length;
-        const centerFactor = 0.6 + Math.sin((i / (n-1)) * Math.PI) * 0.9;  // centro más fuerte
-        const wave = 0.5 + 0.5*Math.sin((i*0.35) + t);                     // animación suave
-        const noise = Math.random()*0.7 + 0.3;                             // mínimo 0.3
-        const raw = (noise * wave * centerFactor * base) * 1.4;            // AMPLIFICADO
+        const centerFactor = 0.6 + Math.sin((i / (n-1)) * Math.PI) * 0.9;
+        const wave = 0.5 + 0.5*Math.sin((i*0.35) + t);
+        const noise = Math.random()*0.7 + 0.3;
+        const raw = (noise * wave * centerFactor * base) * 1.4;
         const norm = Math.min(1, raw);
         levelSum += norm;
 
-        const scale = 0.1 + norm * 4.8;   // ALTURA MUCHÍSIMO MÁS ALTA
+        const scale = 0.1 + norm * 4.8;
         bar.style.transform = `scaleY(${scale})`;
         bar.style.opacity   = 0.2 + norm * 0.9;
 
-        const hue = 190 + norm * 90;      // azul → cian/verdoso brillante
+        const hue = 190 + norm * 90;
         const light = 40 + norm * 30;
         bar.style.background = `linear-gradient(to top, rgba(5,15,35,0.45), hsl(${hue}, 98%, ${light}%))`;
       });
@@ -865,10 +894,9 @@
       const avg = levelSum / vizBars.length;
       document.documentElement.style.setProperty('--accent-glow', String(0.35 + avg * 0.9));
 
-      // PARTY MODE: mover el fondo y glow del reproductor
       if(isParty && $playerCard){
-        const strength = Math.min(1, avg * 1.6); // cuánta "energía" hay
-        const hueBase = 210 + strength * 40;     // tonos azulados
+        const strength = Math.min(1, avg * 1.6);
+        const hueBase = 210 + strength * 40;
         const sat = 70 + strength * 25;
         const light1 = 10 + strength * 15;
         const light2 = 22 + strength * 28;
@@ -882,20 +910,17 @@
            0 0 0 1px rgba(10,40,80,0.7),
            0 0 40px rgba(31,139,255,${glow})`;
       }
-    }, 50); // refresco rápido → se siente más vivo
+    }, 50);
   }
 
-  $audio.addEventListener('play', () => {
-    startViz();
-  });
-  $audio.addEventListener('pause', () => {
-    stopViz();
-  });
-  $audio.addEventListener('ended', () => {
-    stopViz();
-  });
-
-
+  // ---------- Listeners de reproducción (confiables) ----------
+  $audio.addEventListener('playing', () => { isPlaying = true; startViz(); });
+  $audio.addEventListener('pause',   () => { isPlaying = false; stopViz(); });
+  $audio.addEventListener('ended',   () => { isPlaying = false; stopViz(); });
+  $audio.addEventListener('waiting', () => { isPlaying = false; });
+  $audio.addEventListener('stalled', () => { isPlaying = false; });
+  $audio.addEventListener('suspend', () => { isPlaying = false; });
+  $audio.addEventListener('emptied', () => { isPlaying = false; });
 
   // ---------- Restaurar última ----------
   function restoreLast(){
@@ -984,7 +1009,6 @@
       $btnParty.textContent = '🌈 Party ON';
     } else {
       $btnParty.textContent = '🌈 Party';
-      // reset visual del card
       if($playerCard){
         $playerCard.style.background = '';
         $playerCard.style.boxShadow = '';
@@ -1012,6 +1036,7 @@
     $count.textContent = '0';
     $status.textContent = 'Cargando…';
 
+    // IMPORTANTE: enviar URL ABSOLUTA al worker
     const src = encodeUrlMaybe(DEFAULT_PLAYLIST_URL);
     worker.postMessage({ url: src, batchSize: BATCH_SIZE });
   }
@@ -1029,7 +1054,7 @@
     $toggleLogos.checked = showLogos;
   }
 
-    window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', () => {
     startLoad();
     createVizBars(48); // MÁS BARRAS
     const cards = document.querySelectorAll('.card');
