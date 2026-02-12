@@ -9,8 +9,6 @@
 <style>
   :root{
     color-scheme: dark;
-
-    /* TECH BLUE */
     --bg:#020512;
     --bg-soft:#050a1f;
     --panel:#050b1d;
@@ -22,13 +20,11 @@
     --muted:#8ea3b0;
     --accent-glow:0.25;
 
-    /* PARTY VIOLETA */
     --violet:#c812c5;
     --violet2:#7c3aed;
 
-    /* CUERVO */
     --cuervo-opacity: .20;
-    --cuervo-glow: 20; /* px */
+    --cuervo-glow: 20;
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
@@ -111,12 +107,7 @@
 
   .card .body{ padding:12px 14px 14px; }
 
-  .row{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
-  }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
   input[type="search"]{
     flex:1;
@@ -143,32 +134,20 @@
     display:inline-flex;
     align-items:center;
     gap:6px;
-    transition:
-      border-color .18s ease,
-      box-shadow .18s ease,
-      transform .1s ease,
-      background .18s ease;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .1s ease, background .18s ease;
     box-shadow:0 0 0 1px rgba(0,0,0,0.85);
   }
   button:hover{
     border-color:var(--accent-strong);
-    box-shadow:
-      0 0 12px rgba(31,139,255,0.6),
-      0 10px 22px rgba(0,0,0,0.8);
+    box-shadow:0 0 12px rgba(31,139,255,0.6), 0 10px 22px rgba(0,0,0,0.8);
     background:radial-gradient(circle at top,#0c2144,#050a1e);
     transform:translateY(-1px);
   }
-  button:active{
-    transform:translateY(0);
-    box-shadow:0 0 0 1px rgba(0,0,0,0.9);
-  }
+  button:disabled{ opacity:.55; cursor:not-allowed; }
 
   button.party-on{
     border-color: var(--accent-strong);
-    box-shadow:
-      0 0 16px rgba(255,255,255,0.45),
-      0 0 32px rgba(31,139,255,0.9),
-      0 0 28px rgba(200,18,197,0.55);
+    box-shadow: 0 0 16px rgba(255,255,255,0.45), 0 0 32px rgba(31,139,255,0.9), 0 0 28px rgba(200,18,197,0.55);
     background: radial-gradient(circle at top, #1f8bff, #050a1d);
   }
 
@@ -186,7 +165,6 @@
   .pill strong{color:var(--accent-strong);}
   .muted{ color:var(--muted); font-size:12px; }
 
-  /* LISTA */
   .list-wrap{
     height:70vh;
     border:1px solid rgba(40,70,120,0.9);
@@ -240,8 +218,6 @@
   .meta{display:flex;flex-direction:column}
   .name{font-weight:600;font-size:14px}
   .group{font-size:12px;color:var(--muted)}
-
-  .actions{display:flex;gap:8px;align-items:center}
   button.fav{ padding:6px 10px; font-size:13px; }
 
   .now{
@@ -253,7 +229,6 @@
   .controls{ display:flex; gap:10px; flex-wrap:wrap; }
   .controls .grow{ flex:1 }
 
-  /* ===== Equalizer (barras) ===== */
   .viz-wrap{
     margin:10px 0 6px;
     border-radius:999px;
@@ -289,7 +264,6 @@
     will-change: transform, opacity;
   }
 
-  /* ===== LAVA STAGE ===== */
   .lava-stage{
     height: 320px;
     margin:10px 0 8px;
@@ -329,7 +303,6 @@
     justify-content:center;
     pointer-events:none;
     opacity: var(--cuervo-opacity);
-    mix-blend-mode: normal;
     filter:
       contrast(1.10)
       saturate(1.25)
@@ -338,47 +311,17 @@
     transform: translateY(4px);
     animation: cuervoBreath 3.0s ease-in-out infinite;
   }
-
   .cuervo-lava img{
     width: min(420px, 78%);
     max-width: 520px;
     height:auto;
-    opacity:1;
     transform: translateY(2%);
   }
-
-  .lava-stage.party .cuervo-lava::after{
-    content:"";
-    position:absolute;
-    inset:-55%;
-    background: linear-gradient(120deg,
-      rgba(255,255,255,0) 42%,
-      rgba(230,180,255,.22) 50%,
-      rgba(255,255,255,0) 58%);
-    transform: translateX(-72%) rotate(12deg);
-    animation: cuervoShimmer 5.6s ease-in-out infinite;
-    mix-blend-mode: screen;
-    opacity:1;
-  }
-
   @keyframes cuervoBreath{ 0%,100%{ transform: scale(0.99); } 50%{ transform: scale(1.04); } }
-  @keyframes cuervoShimmer{
-    0%{ transform: translateX(-72%) rotate(12deg); opacity:0; }
-    15%{ opacity:.90; }
-    55%{ transform: translateX(72%) rotate(12deg); opacity:.25; }
-    100%{ transform: translateX(72%) rotate(12deg); opacity:0; }
-  }
 
-  audio{
-    width:100%;
-    margin-top:4px;
-    filter:drop-shadow(0 0 10px rgba(0,0,0,0.9));
-  }
-
-  label input[type="range"]{ vertical-align:middle; }
+  audio{ width:100%; margin-top:4px; filter:drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
   input[type="range"]{ accent-color:var(--accent); }
 
-  /* ===== YouTube Manual + DB ===== */
   .detect-panel{
     margin-top:12px;
     border:1px solid rgba(40,70,120,0.9);
@@ -428,7 +371,6 @@
   }
   .yt-frame iframe{width:100%;height:100%;border:0}
 
-  /* ===== Modal YouTube DB ===== */
   .modal{
     position:fixed; inset:0; display:none;
     background:rgba(0,0,0,.62);
@@ -456,8 +398,7 @@
   .db-list{display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow:auto;padding-right:4px}
   .db-item{
     display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-    padding:10px;
-    border-radius:14px;
+    padding:10px;border-radius:14px;
     border:1px solid rgba(80,130,200,0.45);
     background:radial-gradient(circle at top left,#071226,#050912);
   }
@@ -475,7 +416,6 @@
 </header>
 
 <main>
-  <!-- Izquierda -->
   <section class="card">
     <h2>Listado de emisoras</h2>
     <div class="body">
@@ -500,7 +440,6 @@
     </div>
   </section>
 
-  <!-- Derecha -->
   <section class="card">
     <h2>Reproductor</h2>
     <div class="body">
@@ -513,9 +452,7 @@
       </div>
 
       <div id="lavaStage" class="lava-stage" aria-hidden="true">
-        <div class="cuervo-lava">
-          <img src="assets/cuervo-lava.png" alt="">
-        </div>
+        <div class="cuervo-lava"><img src="assets/cuervo-lava.png" alt=""></div>
       </div>
 
       <audio id="audio" controls preload="none" crossorigin="anonymous"></audio>
@@ -538,13 +475,13 @@
         <button id="btnExportJSON">⬇️ Exportar favoritos .json</button>
       </div>
 
-      <!-- ✅ SHAZAM MANUAL → YOUTUBE + DB -->
       <div class="detect-panel">
         <div class="detect-head">
           <div class="detect-title">🎬 <span>YouTube</span> · Shazam Manual + DB</div>
           <div class="row">
             <button id="btnPaste">📋 Pegar</button>
             <button id="btnManualYT">🔎 Buscar</button>
+            <button id="btnOpenYT">🌐 Abrir en YouTube</button>
             <button id="btnManualSave" disabled>💾 Guardar</button>
             <button id="btnOpenYTDB">📚 YouTube DB</button>
           </div>
@@ -577,13 +514,12 @@
       </div>
 
       <div class="muted" style="margin-top:10px">
-        Nota: sin YouTube API Key, el app muestra resultados (modo básico). Con API Key, encuentra video exacto más fácil.
+        Fix incluido: youtube-nocookie + fallback automático si el embed se bloquea.
       </div>
     </div>
   </section>
 </main>
 
-<!-- ✅ MODAL YouTube DB -->
 <div id="ytModal" class="modal" aria-hidden="true">
   <div class="modal-card">
     <div class="modal-head">
@@ -613,13 +549,13 @@
   const LS_FAVORITES  = 'bapp.radio.favorites';
   const LS_VOLUME     = 'bapp.radio.volume';
   const LS_LOGOS      = 'bapp.radio.showLogos';
-
-  // ✅ YouTube DB
   const LS_YT_DB      = 'bapp.radio.youtubeDB';
 
-  // ✅ YouTube API Key (OPCIONAL). Déjalo vacío si no quieres usar API.
-  // Importante: aunque esté vacío, debe existir para evitar errores.
-  const YT_API_KEY = "";
+  // ✅ YouTube API Key (OPCIONAL)
+  const YT_API_KEY = "AIzaSyA4NpwgJmEzBGGTzFFjShyrtWICgSSml-I"; // <-- (si quieres) pega tu key entre comillas
+
+  let lastYT = { query:'', videoId:null, mode:'basic' };
+  let ytFailTimer = null;
 
   // DOM
   const $btnParty = document.getElementById('btnParty');
@@ -655,10 +591,10 @@
   const $viz      = document.getElementById('viz');
   const $lavaStage= document.getElementById('lavaStage');
 
-  // Manual Shazam → YouTube
   const $manualQuery   = document.getElementById('manualQuery');
   const $btnPaste      = document.getElementById('btnPaste');
   const $btnManualYT   = document.getElementById('btnManualYT');
+  const $btnOpenYT     = document.getElementById('btnOpenYT');
   const $btnManualSave = document.getElementById('btnManualSave');
   const $btnManualClear= document.getElementById('btnManualClear');
   const $btnOpenYTDB   = document.getElementById('btnOpenYTDB');
@@ -673,7 +609,6 @@
   const $ytIframe     = document.getElementById('ytIframe');
   const $ytModeNote   = document.getElementById('ytModeNote');
 
-  // Modal DB
   const $ytModal      = document.getElementById('ytModal');
   const $ytDbList     = document.getElementById('ytDbList');
   const $ytDbStats    = document.getElementById('ytDbStats');
@@ -693,8 +628,6 @@
   let currentAbsIndex = -1;
 
   let hls = null;
-
-  // Visual bars
   let vizBars = [];
 
   const favorites = new Set(JSON.parse(localStorage.getItem(LS_FAVORITES) || '[]'));
@@ -725,6 +658,11 @@
   }
   function updateFavCount(){ $favCount.textContent = favorites.size; }
 
+  function getCurrentStation(){
+    const s = (currentAbsIndex >= 0) ? stations[currentAbsIndex] : null;
+    return { name: s?.name || '—', url: s?.url || '', group: s?.group || '' };
+  }
+
   function setTrackUI(q){
     const st = getCurrentStation();
     $trackCover.src = '';
@@ -734,19 +672,9 @@
     $trackStation.textContent = `Emisora: ${st.name}`;
   }
 
-  function getCurrentStation(){
-    const s = (currentAbsIndex >= 0) ? stations[currentAbsIndex] : null;
-    return { name: s?.name || '—', url: s?.url || '', group: s?.group || '' };
-  }
-
   // ========= YouTube DB =========
-  function loadYTDB(){
-    try { return JSON.parse(localStorage.getItem(LS_YT_DB) || '[]') || []; }
-    catch { return []; }
-  }
-  function saveYTDB(arr){
-    localStorage.setItem(LS_YT_DB, JSON.stringify(arr));
-  }
+  function loadYTDB(){ try { return JSON.parse(localStorage.getItem(LS_YT_DB) || '[]') || []; } catch { return []; } }
+  function saveYTDB(arr){ localStorage.setItem(LS_YT_DB, JSON.stringify(arr)); }
   function addYTDB(entry){
     const db = loadYTDB();
     db.unshift(entry);
@@ -754,41 +682,82 @@
     saveYTDB(db);
     renderYTDB();
   }
+  function fmtTime(ts){ try { return new Date(ts).toLocaleString(); } catch { return String(ts || ''); } }
 
-  function fmtTime(ts){
-    try { return new Date(ts).toLocaleString(); } catch { return String(ts || ''); }
-  }
-
-  // ========= YouTube helpers =========
+  // ========= YouTube helpers (nocookie + safe origin) =========
   async function ytSearchVideoId(query){
     if(!YT_API_KEY) return null;
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(query)}&key=${encodeURIComponent(YT_API_KEY)}`;
-    const res = await fetch(url);
-    const json = await res.json();
-    return json?.items?.[0]?.id?.videoId || null;
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 6500);
+    try{
+      const url =
+        `https://www.googleapis.com/youtube/v3/search` +
+        `?part=snippet&type=video&maxResults=1` +
+        `&q=${encodeURIComponent(query)}` +
+        `&key=${encodeURIComponent(YT_API_KEY)}`;
+
+      const res = await fetch(url, { signal: ctrl.signal });
+      const json = await res.json().catch(()=>null);
+      if(!res.ok || json?.error) return null;
+      return json?.items?.[0]?.id?.videoId || null;
+    } catch(_) {
+      return null;
+    } finally {
+      clearTimeout(t);
+    }
   }
 
   function ytEmbedByVideoId(videoId){
-    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+    const base = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+    const qs = new URLSearchParams({
+      autoplay: "1",
+      rel: "0",
+      modestbranding: "1",
+      playsinline: "1"
+    });
+    // ✅ Solo agrega origin si NO es file://
+    if(location.protocol !== 'file:') qs.set('origin', location.origin);
+    return `${base}?${qs.toString()}`;
   }
 
-  // modo básico por búsqueda
   function ytEmbedBySearch(query){
-    return `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
+    const base = `https://www.youtube-nocookie.com/embed`;
+    const qs = new URLSearchParams({
+      autoplay: "1",
+      playsinline: "1",
+      listType: "search",
+      list: query || "music"
+    });
+    if(location.protocol !== 'file:') qs.set('origin', location.origin);
+    return `${base}?${qs.toString()}`;
   }
 
-  function showYT(src, note){
+  function showYT(src, note, queryForFallback=''){
     $ytIframe.src = src;
     $ytFrame.style.display = 'block';
+
     if(note){
       $ytModeNote.textContent = note;
       $ytModeNote.style.display = 'block';
     } else {
       $ytModeNote.style.display = 'none';
     }
+
+    // ✅ Fallback automático: si el embed se bloquea, cambiamos a resultados
+    clearTimeout(ytFailTimer);
+    ytFailTimer = setTimeout(() => {
+      if(!queryForFallback) return;
+      $ytModeNote.textContent = 'YouTube bloqueó este embed. Mostrando resultados…';
+      $ytModeNote.style.display = 'block';
+      $ytIframe.src = ytEmbedBySearch(queryForFallback);
+    }, 4500);
   }
 
-  // ========= Clipboard paste =========
+  function openYTTab(query){
+    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank', 'noopener');
+  }
+
+  // ========= Clipboard =========
   async function pasteFromClipboard(){
     try{
       if(!navigator.clipboard?.readText) throw new Error('Clipboard API no disponible');
@@ -796,7 +765,7 @@
       if(!txt.trim()) return alert('No hay texto en el clipboard.');
       $manualQuery.value = txt.trim();
       setManualState();
-    } catch(err){
+    } catch(_){
       alert('No pude leer el clipboard. Pega manualmente con Ctrl+V / Cmd+V.');
     }
   }
@@ -816,47 +785,49 @@
     $ytIframe.src = '';
     $ytModeNote.style.display = 'none';
     setTrackUI('');
+    lastYT = { query:'', videoId:null, mode:'basic' };
   });
 
+  // ✅ Buscar: intenta video exacto; si no, resultados + fallback
   $btnManualYT.addEventListener('click', async () => {
     const q = ($manualQuery.value || '').trim();
     if(q.length < 3) return alert('Pega un texto válido (Artista - Canción).');
 
     setTrackUI(q);
+    lastYT = { query:q, videoId:null, mode:'basic' };
 
-    let videoId = null;
-    if(YT_API_KEY){
-      try{ videoId = await ytSearchVideoId(q); }catch(_){}
-    }
-
+    const videoId = await ytSearchVideoId(q);
     if(videoId){
-      showYT(ytEmbedByVideoId(videoId), '');
+      lastYT = { query:q, videoId, mode:'api' };
+      showYT(ytEmbedByVideoId(videoId), '', q);
     } else {
       const note = YT_API_KEY
-        ? 'No encontré video exacto. Mostrando resultados.'
+        ? 'No pude obtener video exacto (key restringida/permiso). Mostrando resultados.'
         : 'Modo básico (sin YouTube API Key). Mostrando resultados.';
-      showYT(ytEmbedBySearch(q), note);
+      showYT(ytEmbedBySearch(q), note, q);
     }
 
     $btnManualSave.disabled = false;
   });
 
-  $btnManualSave.addEventListener('click', async () => {
+  // ✅ Abrir en YouTube (pestaña)
+  $btnOpenYT.addEventListener('click', () => {
+    const q = ($manualQuery.value || '').trim();
+    if(q.length < 3) return alert('Pega un texto válido primero.');
+    openYTTab(q);
+  });
+
+  // ✅ Guardar: NO depende de YouTube
+  $btnManualSave.addEventListener('click', () => {
     const q = ($manualQuery.value || '').trim();
     if(!q) return;
-
-    // intentamos obtener videoId si hay key (para guardar más pro)
-    let videoId = null;
-    if(YT_API_KEY){
-      try{ videoId = await ytSearchVideoId(q); }catch(_){}
-    }
 
     addYTDB({
       id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
       createdAt: Date.now(),
       station: getCurrentStation(),
       query: q,
-      youtube: { videoId, mode: videoId ? 'api' : 'basic' }
+      youtube: { videoId: lastYT?.videoId || null, mode: lastYT?.mode || 'basic' }
     });
 
     $btnManualSave.textContent = '✅ Guardado';
@@ -864,15 +835,8 @@
   });
 
   // ========= Modal DB =========
-  function openYTDB(){
-    renderYTDB();
-    $ytModal.classList.add('on');
-    $ytModal.setAttribute('aria-hidden','false');
-  }
-  function closeYTDB(){
-    $ytModal.classList.remove('on');
-    $ytModal.setAttribute('aria-hidden','true');
-  }
+  function openYTDB(){ renderYTDB(); $ytModal.classList.add('on'); $ytModal.setAttribute('aria-hidden','false'); }
+  function closeYTDB(){ $ytModal.classList.remove('on'); $ytModal.setAttribute('aria-hidden','true'); }
 
   function renderYTDB(){
     const db = loadYTDB();
@@ -882,7 +846,7 @@
     if(!db.length){
       const empty = document.createElement('div');
       empty.className = 'muted';
-      empty.textContent = 'Tu YouTube DB está vacía. Usa Shazam → pega → Buscar → Guardar.';
+      empty.textContent = 'Tu YouTube DB está vacía. Shazam → pega → Buscar → Guardar.';
       $ytDbList.appendChild(empty);
       return;
     }
@@ -910,26 +874,23 @@
       t3.className = 'track-sub';
       t3.textContent = it.youtube?.videoId ? `✅ videoId: ${it.youtube.videoId}` : '🔎 resultados (basic)';
 
-      meta.appendChild(t1);
-      meta.appendChild(t2);
-      meta.appendChild(t3);
+      meta.appendChild(t1); meta.appendChild(t2); meta.appendChild(t3);
 
       const act = document.createElement('div');
       act.className = 'db-actions';
 
       const play = document.createElement('button');
       play.textContent = '▶️ Play';
-      play.addEventListener('click', async () => {
+      play.addEventListener('click', () => {
         const q = it.query || '';
         $manualQuery.value = q;
         setManualState();
         setTrackUI(q);
 
         if(it.youtube?.videoId){
-          showYT(ytEmbedByVideoId(it.youtube.videoId), '');
+          showYT(ytEmbedByVideoId(it.youtube.videoId), '', q);
         } else {
-          const note = YT_API_KEY ? 'Mostrando resultados.' : 'Modo básico (sin YouTube API Key).';
-          showYT(ytEmbedBySearch(q || 'music'), note);
+          showYT(ytEmbedBySearch(q || 'music'), 'Mostrando resultados…', q);
         }
         closeYTDB();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -949,7 +910,6 @@
       row.appendChild(img);
       row.appendChild(meta);
       row.appendChild(act);
-
       $ytDbList.appendChild(row);
     }
   }
@@ -1058,7 +1018,6 @@
     };
   `;
   const worker = new Worker(URL.createObjectURL(new Blob([workerSrc], {type:'application/javascript'})));
-
   worker.onmessage = (e) => {
     const { type } = e.data;
     if(type === 'batch'){
@@ -1082,7 +1041,6 @@
     }
   };
 
-  // ========= Filtro + Lista Virtual =========
   function computeFilteredIndices(){
     const q = $q.value.toLowerCase().trim();
     const out = [];
@@ -1147,15 +1105,12 @@
     highlightActive();
   }
 
-  $listWrap.addEventListener('scroll', () => {
-    requestAnimationFrame(()=>updateVirtual(false));
-  });
-
+  $listWrap.addEventListener('scroll', () => requestAnimationFrame(()=>updateVirtual(false)));
   $q.addEventListener('input', applyFilterDebounced);
   $btnReset.addEventListener('click', () => { $q.value=''; applyFilterDebounced(); });
+
   $btnOnlyFavs.addEventListener('click', () => { onlyFavs = true; applyFilterDebounced(); });
   $btnAll.addEventListener('click', () => { onlyFavs = false; applyFilterDebounced(); });
-  $btnReload.addEventListener('click', () => { startLoad(); });
 
   function logoElem(s){
     if(!showLogos || !s.logo){
@@ -1194,9 +1149,6 @@
     const group = document.createElement('div'); group.className='group'; group.textContent = s.group || '—';
     meta.appendChild(name); meta.appendChild(group);
 
-    const actions = document.createElement('div');
-    actions.className = 'actions';
-
     const favBtn = document.createElement('button');
     favBtn.className = 'fav';
     favBtn.title = 'Agregar/Quitar de favoritos';
@@ -1207,11 +1159,9 @@
       favBtn.textContent = isFav(s.url) ? '⭐' : '☆';
     });
 
-    actions.appendChild(favBtn);
-
     li.appendChild(logo);
     li.appendChild(meta);
-    li.appendChild(actions);
+    li.appendChild(favBtn);
 
     li.addEventListener('click', () => playByAbsoluteIndex(absIndex));
     li.addEventListener('dblclick', () => playByAbsoluteIndex(absIndex));
@@ -1232,7 +1182,6 @@
     }
   }
 
-  // ========= Reproductor =========
   function setNow(s){
     $nowName.textContent = s.name || '—';
     $nowGroup.textContent = s.group ? `· ${s.group}` : '';
@@ -1286,17 +1235,12 @@
       $audio.play().catch(()=>{});
     }
   }
-  // ========= Equalizer REAL (WebAudio) =========
-  let audioCtx = null;
-  let analyser = null;
-  let srcNode = null;
-  let freqData = null;
-  let rafId = null;
 
+  // ========= Equalizer =========
+  let audioCtx=null, analyser=null, srcNode=null, freqData=null, rafId=null;
   function clamp01(x){ return Math.max(0, Math.min(1, x)); }
 
   function createVizBars(count){
-    if(!$viz) return;
     $viz.innerHTML = '';
     vizBars = [];
     for(let i=0;i<count;i++){
@@ -1321,9 +1265,8 @@
 
       freqData = new Uint8Array(analyser.frequencyBinCount);
       return true;
-    }catch(err){
-      analyser = null;
-      freqData = null;
+    }catch(_){
+      analyser=null; freqData=null;
       return false;
     }
   }
@@ -1347,7 +1290,6 @@
 
     if(analyser && freqData){
       analyser.getByteFrequencyData(freqData);
-
       const nBars = vizBars.length || 48;
       const step = Math.max(1, Math.floor(freqData.length / nBars));
 
@@ -1356,12 +1298,10 @@
         const v = freqData[i*step] / 255;
         sum += v;
 
-        const scale = 0.18 + v * 4.8;
         const bar = vizBars[i];
         if(bar){
-          bar.style.transform = `scaleY(${scale})`;
+          bar.style.transform = `scaleY(${0.18 + v * 4.8})`;
           bar.style.opacity = (0.18 + v * 0.95).toFixed(2);
-
           const hue = 190 + v * 90;
           const light = 38 + v * 34;
           bar.style.background = `linear-gradient(to top, rgba(5,15,35,0.45), hsl(${hue}, 98%, ${light}%))`;
@@ -1370,7 +1310,7 @@
       avg = sum / nBars;
     } else {
       const t = performance.now() / 260;
-      let sum = 0;
+      let sum=0;
       for(let i=0;i<vizBars.length;i++){
         const wave = 0.5 + 0.5*Math.sin(t + i*0.35);
         const v = wave * ($audio.volume || 1) * (isPlaying ? 1 : 0.3);
@@ -1396,15 +1336,9 @@
   }
 
   function stopViz(){
-    if(rafId){
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
-    vizBars.forEach(b=>{
-      b.style.transform = 'scaleY(0.20)';
-      b.style.opacity = '0.15';
-    });
-    document.documentElement.style.setProperty('--accent-glow', '0.25');
+    if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
+    vizBars.forEach(b=>{ b.style.transform='scaleY(0.20)'; b.style.opacity='0.15'; });
+    document.documentElement.style.setProperty('--accent-glow','0.25');
     setCuervoReactive(0);
   }
 
@@ -1414,7 +1348,6 @@
   $audio.addEventListener('ended',   () => { isPlaying = false; stopViz(); });
   $audio.addEventListener('emptied', () => { isPlaying = false; stopViz(); });
 
-  // ========= Restore last =========
   function restoreLast(){
     const savedAbs = Number(localStorage.getItem(LS_LAST_INDEX));
     if(Number.isFinite(savedAbs)){
@@ -1422,8 +1355,7 @@
       if(pos !== -1){
         currentFilteredPos = pos;
         playByAbsoluteIndex(savedAbs);
-        const y = pos * ITEM_HEIGHT - 8;
-        $listWrap.scrollTop = Math.max(0, y);
+        $listWrap.scrollTop = Math.max(0, pos * ITEM_HEIGHT - 8);
         return;
       }
     }
@@ -1433,7 +1365,16 @@
     }
   }
 
-  // ========= Export =========
+  function downloadBlob(text, filename, mime){
+    const blob = new Blob([text], {type: mime});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+
   function exportM3U(){
     const lines = ['#EXTM3U'];
     for(const url of favorites){
@@ -1457,17 +1398,17 @@
     downloadBlob(JSON.stringify(out, null, 2), 'favoritos.json', 'application/json');
   }
 
-  function downloadBlob(text, filename, mime){
-    const blob = new Blob([text], {type: mime});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-  }
+  $btnExportM3U.addEventListener('click', exportM3U);
+  $btnExportJSON.addEventListener('click', exportJSON);
 
-  // ========= Controles =========
+  $btnReload.addEventListener('click', () => startLoad());
+
+  $toggleLogos.addEventListener('change', () => {
+    showLogos = $toggleLogos.checked;
+    localStorage.setItem(LS_LOGOS, showLogos ? '1':'0');
+    updateVirtual();
+  });
+
   $btnPlay.addEventListener('click', () => {
     if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
     $audio.play().catch(()=>{});
@@ -1494,15 +1435,6 @@
     setCuervoReactive(isPlaying ? 0.25 : 0);
   });
 
-  $btnExportM3U.addEventListener('click', exportM3U);
-  $btnExportJSON.addEventListener('click', exportJSON);
-
-  $toggleLogos.addEventListener('change', () => {
-    showLogos = $toggleLogos.checked;
-    localStorage.setItem(LS_LOGOS, showLogos ? '1':'0');
-    updateVirtual();
-  });
-
   $btnParty.addEventListener('click', () => {
     isParty = !isParty;
     $btnParty.classList.toggle('party-on', isParty);
@@ -1510,7 +1442,7 @@
     setCuervoReactive(isPlaying ? 0.35 : 0);
   });
 
-  // ========= Inicio =========
+  // ========= Start Load =========
   function startLoad(){
     stations = [];
     filteredIdx = [];
@@ -1520,22 +1452,14 @@
     $spacer.style.height = '0px';
     $count.textContent = '0';
     $status.textContent = 'Cargando…';
-
-    const src = encodeUrlMaybe(DEFAULT_PLAYLIST_URL);
-    worker.postMessage({ url: src, batchSize: BATCH_SIZE });
+    worker.postMessage({ url: encodeUrlMaybe(DEFAULT_PLAYLIST_URL), batchSize: BATCH_SIZE });
   }
 
   const vPrev = Number(localStorage.getItem(LS_VOLUME));
-  if(Number.isFinite(vPrev)){
-    $vol.value = vPrev;
-    $audio.volume = vPrev;
-  }
+  if(Number.isFinite(vPrev)){ $vol.value = vPrev; $audio.volume = vPrev; }
 
   const logosPrev = localStorage.getItem(LS_LOGOS);
-  if(logosPrev !== null){
-    showLogos = logosPrev === '1';
-    $toggleLogos.checked = showLogos;
-  }
+  if(logosPrev !== null){ showLogos = logosPrev === '1'; $toggleLogos.checked = showLogos; }
 
   window.addEventListener('DOMContentLoaded', () => {
     startLoad();
@@ -1545,7 +1469,6 @@
     renderYTDB();
     setManualState();
   });
-
 })();
 </script>
 </body>
