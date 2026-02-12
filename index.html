@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Bapp Radio – 24MB Ready (Worker + Virtual List)</title>
+<title>Bapp Radio – Global Stations + Shazam Manual YouTube DB</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
     color-scheme: dark;
 
-    /* PALETA AZUL METÁLICA */
+    /* TECH BLUE */
     --bg:#020512;
     --bg-soft:#050a1f;
     --panel:#050b1d;
@@ -243,19 +243,6 @@
 
   .actions{display:flex;gap:8px;align-items:center}
   button.fav{ padding:6px 10px; font-size:13px; }
-  button.detect{
-    padding:6px 10px;
-    font-size:13px;
-    border-color: rgba(200,18,197,0.55);
-    box-shadow:0 0 10px rgba(200,18,197,0.25);
-  }
-  button.detect:hover{
-    border-color: rgba(200,18,197,0.95);
-    box-shadow:
-      0 0 18px rgba(200,18,197,0.55),
-      0 0 10px rgba(31,139,255,0.35);
-  }
-  button.detect[disabled]{ opacity:.55; cursor:not-allowed; transform:none; }
 
   .now{
     font-size:14px;color:#d6f7ff;
@@ -302,7 +289,7 @@
     will-change: transform, opacity;
   }
 
-  /* ===== LAVA STAGE (más grande) ===== */
+  /* ===== LAVA STAGE ===== */
   .lava-stage{
     height: 320px;
     margin:10px 0 8px;
@@ -374,15 +361,12 @@
     opacity:1;
   }
 
-  @keyframes cuervoBreath{
-    0%,100%{ transform: scale(0.99); }
-    50%    { transform: scale(1.04); }
-  }
+  @keyframes cuervoBreath{ 0%,100%{ transform: scale(0.99); } 50%{ transform: scale(1.04); } }
   @keyframes cuervoShimmer{
-    0%   { transform: translateX(-72%) rotate(12deg); opacity:0; }
-    15%  { opacity:.90; }
-    55%  { transform: translateX(72%) rotate(12deg); opacity:.25; }
-    100% { transform: translateX(72%) rotate(12deg); opacity:0; }
+    0%{ transform: translateX(-72%) rotate(12deg); opacity:0; }
+    15%{ opacity:.90; }
+    55%{ transform: translateX(72%) rotate(12deg); opacity:.25; }
+    100%{ transform: translateX(72%) rotate(12deg); opacity:0; }
   }
 
   audio{
@@ -394,7 +378,7 @@
   label input[type="range"]{ vertical-align:middle; }
   input[type="range"]{ accent-color:var(--accent); }
 
-  /* ===== Track Detective (NEW) ===== */
+  /* ===== YouTube Manual + DB ===== */
   .detect-panel{
     margin-top:12px;
     border:1px solid rgba(40,70,120,0.9);
@@ -412,12 +396,14 @@
     display:flex;align-items:center;gap:8px;
   }
   .detect-title span{ color: rgba(200,18,197,.9); }
+
   .track-card{
     display:flex;gap:12px;align-items:center;flex-wrap:wrap;
     padding:10px;
     border-radius:14px;
     border:1px solid rgba(80,130,200,0.55);
     background: radial-gradient(circle at top left,#07152e,#050a1d);
+    margin-top:10px;
   }
   .cover{
     width:64px;height:64px;border-radius:14px;object-fit:cover;
@@ -429,6 +415,7 @@
   .track-name{font-weight:700}
   .track-artist{color:var(--muted);font-size:12px}
   .track-sub{color:rgba(180,197,220,0.75);font-size:12px}
+
   .yt-frame{
     width:100%;
     aspect-ratio:16/9;
@@ -441,7 +428,7 @@
   }
   .yt-frame iframe{width:100%;height:100%;border:0}
 
-  /* ===== Modal (YouTube DB) ===== */
+  /* ===== Modal YouTube DB ===== */
   .modal{
     position:fixed; inset:0; display:none;
     background:rgba(0,0,0,.62);
@@ -509,7 +496,7 @@
         <div id="items" class="items"></div>
       </div>
 
-      <div class="muted" style="margin-top:8px">Doble clic o Enter para reproducir · ⭐ para favoritos · 🎵 Detectar (solo emisora activa)</div>
+      <div class="muted" style="margin-top:8px">Doble clic o Enter para reproducir · ⭐ para favoritos</div>
     </div>
   </section>
 
@@ -551,31 +538,34 @@
         <button id="btnExportJSON">⬇️ Exportar favoritos .json</button>
       </div>
 
-      <!-- ✅ TRACK DETECTIVE + YOUTUBE (NEW) -->
+      <!-- ✅ SHAZAM MANUAL → YOUTUBE + DB -->
       <div class="detect-panel">
         <div class="detect-head">
-          <div class="detect-title">🎵 <span>Track Detective</span> · YouTube DB</div>
+          <div class="detect-title">🎬 <span>YouTube</span> · Shazam Manual + DB</div>
           <div class="row">
-            <button id="btnDetectNow">🎙️ Detectar ahora</button>
+            <button id="btnPaste">📋 Pegar</button>
+            <button id="btnManualYT">🔎 Buscar</button>
+            <button id="btnManualSave" disabled>💾 Guardar</button>
             <button id="btnOpenYTDB">📚 YouTube DB</button>
           </div>
         </div>
 
         <div class="muted" id="detectHint">
-          Tip: toca “Detectar ahora” mientras suena la emisora. Se usará el micrófono ~10s.
+          ✅ Usa Shazam en tu teléfono, copia “Artista - Canción” y pégalo aquí. Luego “Buscar” para ver el video dentro del app.
         </div>
 
-        <div class="track-card" style="margin-top:10px">
+        <div class="row" style="margin-top:10px">
+          <input id="manualQuery" type="search" placeholder="Pega aquí: Artista - Canción (desde Shazam)" style="flex:1; min-width:240px" />
+          <button id="btnManualClear">🧹 Limpiar</button>
+        </div>
+
+        <div class="track-card">
           <img id="trackCover" class="cover" alt="" />
           <div class="track-meta">
             <div class="track-name" id="trackTitle">—</div>
             <div class="track-artist" id="trackArtist">—</div>
             <div class="track-sub" id="trackExtra">—</div>
             <div class="muted" id="trackStation">Emisora: —</div>
-          </div>
-          <div class="row">
-            <button id="btnFindYT" disabled>▶️ Ver en YouTube</button>
-            <button id="btnSaveYT" disabled>💾 Guardar</button>
           </div>
         </div>
 
@@ -587,13 +577,13 @@
       </div>
 
       <div class="muted" style="margin-top:10px">
-        Equalizer real (WebAudio) cuando el stream lo permite. Party prende luz violeta en LAVA + equalizer.
+        Nota: sin YouTube API Key, el app muestra resultados (modo básico). Con API Key, encuentra video exacto más fácil.
       </div>
     </div>
   </section>
 </main>
 
-<!-- ✅ MODAL YouTube DB (NEW) -->
+<!-- ✅ MODAL YouTube DB -->
 <div id="ytModal" class="modal" aria-hidden="true">
   <div class="modal-card">
     <div class="modal-head">
@@ -624,19 +614,12 @@
   const LS_VOLUME     = 'bapp.radio.volume';
   const LS_LOGOS      = 'bapp.radio.showLogos';
 
-  // ✅ NEW: YouTube DB
+  // ✅ YouTube DB
   const LS_YT_DB      = 'bapp.radio.youtubeDB';
 
-  // ✅ CONFIG: pon tus keys aquí
-  // AudD: token requerido para reconocer audio. (Sign up y copias tu token)
-  const AUDD_API_TOKEN = "efbf44aeeba3218a61b3e9bab874c2ac";
-  const YT_API_KEY = ""; // ← importante, aunque esté vacío
-
-
-
-  // YouTube Data API v3 (opcional). Si lo pones, traemos el video exacto.
-  // Si lo dejas vacío, hacemos “modo básico”.
-  const YOUTUBE_API_KEY = "AIzaSyA4NpwgJmEzBGGTzFFjShyrtWICgSSml-I";
+  // ✅ YouTube API Key (OPCIONAL). Déjalo vacío si no quieres usar API.
+  // Importante: aunque esté vacío, debe existir para evitar errores.
+  const YT_API_KEY = "";
 
   // DOM
   const $btnParty = document.getElementById('btnParty');
@@ -672,21 +655,25 @@
   const $viz      = document.getElementById('viz');
   const $lavaStage= document.getElementById('lavaStage');
 
-  // ✅ NEW: Track Detective UI
-  const $btnDetectNow = document.getElementById('btnDetectNow');
-  const $btnOpenYTDB  = document.getElementById('btnOpenYTDB');
+  // Manual Shazam → YouTube
+  const $manualQuery   = document.getElementById('manualQuery');
+  const $btnPaste      = document.getElementById('btnPaste');
+  const $btnManualYT   = document.getElementById('btnManualYT');
+  const $btnManualSave = document.getElementById('btnManualSave');
+  const $btnManualClear= document.getElementById('btnManualClear');
+  const $btnOpenYTDB   = document.getElementById('btnOpenYTDB');
+
   const $trackCover   = document.getElementById('trackCover');
   const $trackTitle   = document.getElementById('trackTitle');
   const $trackArtist  = document.getElementById('trackArtist');
   const $trackExtra   = document.getElementById('trackExtra');
   const $trackStation = document.getElementById('trackStation');
-  const $btnFindYT    = document.getElementById('btnFindYT');
-  const $btnSaveYT    = document.getElementById('btnSaveYT');
+
   const $ytFrame      = document.getElementById('ytFrame');
   const $ytIframe     = document.getElementById('ytIframe');
   const $ytModeNote   = document.getElementById('ytModeNote');
 
-  // ✅ NEW: Modal DB
+  // Modal DB
   const $ytModal      = document.getElementById('ytModal');
   const $ytDbList     = document.getElementById('ytDbList');
   const $ytDbStats    = document.getElementById('ytDbStats');
@@ -703,8 +690,6 @@
   let onlyFavs = false;
   let showLogos = true;
   let currentFilteredPos = -1;
-
-  // ✅ NEW: current absolute playing index
   let currentAbsIndex = -1;
 
   let hls = null;
@@ -715,7 +700,46 @@
   const favorites = new Set(JSON.parse(localStorage.getItem(LS_FAVORITES) || '[]'));
   updateFavCount();
 
-  // ✅ NEW: YouTube DB store
+  // ========= Utils =========
+  function encodeUrlMaybe(u){
+    try { const abs = new URL(u, window.location.href); if(/^https?:/i.test(abs.protocol)) return abs.href; } catch(_) {}
+    return encodeURI(u);
+  }
+  function debounce(fn, wait){
+    let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); };
+  }
+  function guessNameFromUrl(u){
+    try{
+      const p = new URL(u, window.location.href);
+      const last = p.pathname.split('/').filter(Boolean).pop() || p.host;
+      return decodeURIComponent((last || '').replace(/\.[a-z0-9]+$/i,'')).replace(/[_\-]+/g,' ').trim() || p.host;
+    } catch { return u; }
+  }
+
+  function isFav(url){ return favorites.has(url); }
+  function toggleFav(url){
+    if(isFav(url)) favorites.delete(url); else favorites.add(url);
+    localStorage.setItem(LS_FAVORITES, JSON.stringify([...favorites]));
+    updateFavCount();
+    if(onlyFavs) applyFilterDebounced();
+  }
+  function updateFavCount(){ $favCount.textContent = favorites.size; }
+
+  function setTrackUI(q){
+    const st = getCurrentStation();
+    $trackCover.src = '';
+    $trackTitle.textContent = q || '—';
+    $trackArtist.textContent = q ? 'Pegado desde Shazam' : '—';
+    $trackExtra.textContent = '—';
+    $trackStation.textContent = `Emisora: ${st.name}`;
+  }
+
+  function getCurrentStation(){
+    const s = (currentAbsIndex >= 0) ? stations[currentAbsIndex] : null;
+    return { name: s?.name || '—', url: s?.url || '', group: s?.group || '' };
+  }
+
+  // ========= YouTube DB =========
   function loadYTDB(){
     try { return JSON.parse(localStorage.getItem(LS_YT_DB) || '[]') || []; }
     catch { return []; }
@@ -726,58 +750,224 @@
   function addYTDB(entry){
     const db = loadYTDB();
     db.unshift(entry);
-    // limit para no explotar localStorage
     if(db.length > 500) db.length = 500;
     saveYTDB(db);
     renderYTDB();
   }
 
-  // ========= Utils =========
-  function encodeUrlMaybe(u){
-    try { const abs = new URL(u, window.location.href); if(/^https?:/i.test(abs.protocol)) return abs.href; } catch(_) {}
-    return encodeURI(u);
-  }
-  function isFav(url){ return favorites.has(url); }
-  function toggleFav(url){
-    if(isFav(url)) favorites.delete(url); else favorites.add(url);
-    localStorage.setItem(LS_FAVORITES, JSON.stringify([...favorites]));
-    updateFavCount();
-    if(onlyFavs) applyFilterDebounced();
-  }
-  function updateFavCount(){ $favCount.textContent = favorites.size; }
-
-  function guessNameFromUrl(u){
-    try{
-      const p = new URL(u, window.location.href);
-      const last = p.pathname.split('/').filter(Boolean).pop() || p.host;
-      return decodeURIComponent((last || '').replace(/\.[a-z0-9]+$/i,'')).replace(/[_\-]+/g,' ').trim() || p.host;
-    } catch { return u; }
-  }
-
-  function debounce(fn, wait){
-    let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), wait); };
-  }
-
-  function setTrackUIIdle(msg='—'){
-    $trackCover.src = '';
-    $trackTitle.textContent = msg;
-    $trackArtist.textContent = '—';
-    $trackExtra.textContent = '—';
-    $btnFindYT.disabled = true;
-    $btnSaveYT.disabled = true;
-    $ytFrame.style.display = 'none';
-    $ytIframe.src = '';
-    $ytModeNote.style.display = 'none';
-  }
-
-  function setDetectBusy(busy, label){
-    $btnDetectNow.disabled = busy;
-    $btnDetectNow.textContent = busy ? (label || '🎙️ Detectando…') : '🎙️ Detectar ahora';
-  }
-
   function fmtTime(ts){
     try { return new Date(ts).toLocaleString(); } catch { return String(ts || ''); }
   }
+
+  // ========= YouTube helpers =========
+  async function ytSearchVideoId(query){
+    if(!YT_API_KEY) return null;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(query)}&key=${encodeURIComponent(YT_API_KEY)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    return json?.items?.[0]?.id?.videoId || null;
+  }
+
+  function ytEmbedByVideoId(videoId){
+    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+  }
+
+  // modo básico por búsqueda
+  function ytEmbedBySearch(query){
+    return `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
+  }
+
+  function showYT(src, note){
+    $ytIframe.src = src;
+    $ytFrame.style.display = 'block';
+    if(note){
+      $ytModeNote.textContent = note;
+      $ytModeNote.style.display = 'block';
+    } else {
+      $ytModeNote.style.display = 'none';
+    }
+  }
+
+  // ========= Clipboard paste =========
+  async function pasteFromClipboard(){
+    try{
+      if(!navigator.clipboard?.readText) throw new Error('Clipboard API no disponible');
+      const txt = (await navigator.clipboard.readText()) || '';
+      if(!txt.trim()) return alert('No hay texto en el clipboard.');
+      $manualQuery.value = txt.trim();
+      setManualState();
+    } catch(err){
+      alert('No pude leer el clipboard. Pega manualmente con Ctrl+V / Cmd+V.');
+    }
+  }
+
+  function setManualState(){
+    const q = ($manualQuery.value || '').trim();
+    $btnManualSave.disabled = q.length < 3;
+  }
+
+  $manualQuery.addEventListener('input', setManualState);
+  $btnPaste.addEventListener('click', pasteFromClipboard);
+
+  $btnManualClear.addEventListener('click', () => {
+    $manualQuery.value = '';
+    setManualState();
+    $ytFrame.style.display = 'none';
+    $ytIframe.src = '';
+    $ytModeNote.style.display = 'none';
+    setTrackUI('');
+  });
+
+  $btnManualYT.addEventListener('click', async () => {
+    const q = ($manualQuery.value || '').trim();
+    if(q.length < 3) return alert('Pega un texto válido (Artista - Canción).');
+
+    setTrackUI(q);
+
+    let videoId = null;
+    if(YT_API_KEY){
+      try{ videoId = await ytSearchVideoId(q); }catch(_){}
+    }
+
+    if(videoId){
+      showYT(ytEmbedByVideoId(videoId), '');
+    } else {
+      const note = YT_API_KEY
+        ? 'No encontré video exacto. Mostrando resultados.'
+        : 'Modo básico (sin YouTube API Key). Mostrando resultados.';
+      showYT(ytEmbedBySearch(q), note);
+    }
+
+    $btnManualSave.disabled = false;
+  });
+
+  $btnManualSave.addEventListener('click', async () => {
+    const q = ($manualQuery.value || '').trim();
+    if(!q) return;
+
+    // intentamos obtener videoId si hay key (para guardar más pro)
+    let videoId = null;
+    if(YT_API_KEY){
+      try{ videoId = await ytSearchVideoId(q); }catch(_){}
+    }
+
+    addYTDB({
+      id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
+      createdAt: Date.now(),
+      station: getCurrentStation(),
+      query: q,
+      youtube: { videoId, mode: videoId ? 'api' : 'basic' }
+    });
+
+    $btnManualSave.textContent = '✅ Guardado';
+    setTimeout(()=>{ $btnManualSave.textContent = '💾 Guardar'; }, 1200);
+  });
+
+  // ========= Modal DB =========
+  function openYTDB(){
+    renderYTDB();
+    $ytModal.classList.add('on');
+    $ytModal.setAttribute('aria-hidden','false');
+  }
+  function closeYTDB(){
+    $ytModal.classList.remove('on');
+    $ytModal.setAttribute('aria-hidden','true');
+  }
+
+  function renderYTDB(){
+    const db = loadYTDB();
+    $ytDbStats.textContent = `Items: ${db.length} · Último: ${db[0]?.createdAt ? fmtTime(db[0].createdAt) : '—'}`;
+
+    $ytDbList.innerHTML = '';
+    if(!db.length){
+      const empty = document.createElement('div');
+      empty.className = 'muted';
+      empty.textContent = 'Tu YouTube DB está vacía. Usa Shazam → pega → Buscar → Guardar.';
+      $ytDbList.appendChild(empty);
+      return;
+    }
+
+    for(const it of db){
+      const row = document.createElement('div');
+      row.className = 'db-item';
+
+      const img = document.createElement('div');
+      img.className = 'logo';
+      img.textContent = '🎬';
+
+      const meta = document.createElement('div');
+      meta.className = 'track-meta';
+
+      const t1 = document.createElement('div');
+      t1.className = 'track-name';
+      t1.textContent = it.query || '—';
+
+      const t2 = document.createElement('div');
+      t2.className = 'track-artist';
+      t2.textContent = `📻 ${it.station?.name || '—'} · ${fmtTime(it.createdAt)}`;
+
+      const t3 = document.createElement('div');
+      t3.className = 'track-sub';
+      t3.textContent = it.youtube?.videoId ? `✅ videoId: ${it.youtube.videoId}` : '🔎 resultados (basic)';
+
+      meta.appendChild(t1);
+      meta.appendChild(t2);
+      meta.appendChild(t3);
+
+      const act = document.createElement('div');
+      act.className = 'db-actions';
+
+      const play = document.createElement('button');
+      play.textContent = '▶️ Play';
+      play.addEventListener('click', async () => {
+        const q = it.query || '';
+        $manualQuery.value = q;
+        setManualState();
+        setTrackUI(q);
+
+        if(it.youtube?.videoId){
+          showYT(ytEmbedByVideoId(it.youtube.videoId), '');
+        } else {
+          const note = YT_API_KEY ? 'Mostrando resultados.' : 'Modo básico (sin YouTube API Key).';
+          showYT(ytEmbedBySearch(q || 'music'), note);
+        }
+        closeYTDB();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      const del = document.createElement('button');
+      del.textContent = '🗑️ Delete';
+      del.addEventListener('click', () => {
+        const next = loadYTDB().filter(x => x.id !== it.id);
+        saveYTDB(next);
+        renderYTDB();
+      });
+
+      act.appendChild(play);
+      act.appendChild(del);
+
+      row.appendChild(img);
+      row.appendChild(meta);
+      row.appendChild(act);
+
+      $ytDbList.appendChild(row);
+    }
+  }
+
+  $btnOpenYTDB.addEventListener('click', openYTDB);
+  $btnCloseYTDB.addEventListener('click', closeYTDB);
+  $ytModal.addEventListener('click', (e)=>{ if(e.target === $ytModal) closeYTDB(); });
+
+  $btnExportYTDB.addEventListener('click', () => {
+    const db = loadYTDB();
+    downloadBlob(JSON.stringify(db, null, 2), 'youtube-db.json', 'application/json');
+  });
+
+  $btnClearYTDB.addEventListener('click', () => {
+    if(!confirm('¿Seguro que deseas vaciar la YouTube DB?')) return;
+    saveYTDB([]);
+    renderYTDB();
+  });
 
   // ========= Worker (M3U parser) =========
   const workerSrc = `
@@ -885,6 +1075,7 @@
       $status.textContent = `Listo: ${stations.length} emisoras`;
       finalizeFilter();
       restoreLast();
+      renderYTDB();
     } else if(type === 'error'){
       alert('Error al cargar/parsing M3U: ' + e.data.message);
       $status.textContent = 'Error';
@@ -960,6 +1151,12 @@
     requestAnimationFrame(()=>updateVirtual(false));
   });
 
+  $q.addEventListener('input', applyFilterDebounced);
+  $btnReset.addEventListener('click', () => { $q.value=''; applyFilterDebounced(); });
+  $btnOnlyFavs.addEventListener('click', () => { onlyFavs = true; applyFilterDebounced(); });
+  $btnAll.addEventListener('click', () => { onlyFavs = false; applyFilterDebounced(); });
+  $btnReload.addEventListener('click', () => { startLoad(); });
+
   function logoElem(s){
     if(!showLogos || !s.logo){
       const div = document.createElement('div');
@@ -1010,18 +1207,6 @@
       favBtn.textContent = isFav(s.url) ? '⭐' : '☆';
     });
 
-    // ✅ NEW: Detect button (solo emisora activa)
-    const detBtn = document.createElement('button');
-    detBtn.className = 'detect';
-    detBtn.title = 'Detectar la canción (micrófono)';
-    detBtn.textContent = '🎵';
-    detBtn.style.display = (absIndex === currentAbsIndex) ? 'inline-flex' : 'none';
-    detBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      startTrackDetect();
-    });
-
-    actions.appendChild(detBtn);
     actions.appendChild(favBtn);
 
     li.appendChild(logo);
@@ -1069,9 +1254,6 @@
     highlightActive();
     localStorage.setItem(LS_LAST_INDEX, String(absIndex));
 
-    // refresca lista visible (para mostrar 🎵 solo en la activa)
-    updateVirtual(false);
-
     isPlaying = false;
     $audio.pause();
     $audio.removeAttribute('src');
@@ -1104,309 +1286,6 @@
       $audio.play().catch(()=>{});
     }
   }
-
-  // ========= NEW: Track Detect (AudD) + YouTube =========
-  let lastTrack = null;
-
-  async function recordMic(seconds=10){
-    const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
-    const rec = new MediaRecorder(stream);
-    const chunks = [];
-
-    return await new Promise((resolve, reject) => {
-      let done = false;
-      rec.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
-      rec.onerror = (e) => { if(!done){ done=true; reject(e.error || new Error('MediaRecorder error')); } };
-      rec.onstop = () => {
-        try{
-          stream.getTracks().forEach(t => t.stop());
-        }catch(_){}
-        if(done) return;
-        done = true;
-        resolve(new Blob(chunks, { type: rec.mimeType || 'audio/webm' }));
-      };
-
-      rec.start();
-      setTimeout(() => { try{ rec.stop(); }catch(_){} }, Math.max(1000, seconds*1000));
-    });
-  }
-
-  async function auddRecognize(blob){
-    if(!AUDD_API_TOKEN){
-      throw new Error('Falta AUDD_API_TOKEN. Pega tu token de AudD en el código.');
-    }
-
-    const fd = new FormData();
-    fd.append('api_token', AUDD_API_TOKEN);
-    fd.append('return', 'apple_music,spotify'); // opcional
-    fd.append('file', blob, 'sample.webm');
-
-    const res = await fetch('https://api.audd.io/', { method:'POST', body: fd });
-    const json = await res.json();
-    if(!json || json.status !== 'success' || !json.result){
-      const msg = json?.error?.error_message || json?.error?.message || 'No se pudo reconocer (sin match).';
-      throw new Error(msg);
-    }
-    return json.result;
-  }
-
-  function pickCover(result){
-    return (
-      result?.spotify?.album?.images?.[0]?.url ||
-      result?.apple_music?.artwork?.url?.replace('{w}', '300')?.replace('{h}', '300') ||
-      ''
-    );
-  }
-
-  function buildQuery(result){
-    const t = (result?.title || '').trim();
-    const a = (result?.artist || '').trim();
-    return [a, t].filter(Boolean).join(' - ') || t || a || 'music';
-  }
-
-  async function ytSearchVideoId(query){
-    if(!YT_API_KEY) return null;
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(query)}&key=${encodeURIComponent(YT_API_KEY)}`;
-    const res = await fetch(url);
-    const json = await res.json();
-    const vid = json?.items?.[0]?.id?.videoId;
-    return vid || null;
-  }
-
-  function ytEmbedByVideoId(videoId){
-    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
-  }
-
-  // Modo básico: embed search (puede funcionar, pero está deprecated en IFrame API)
-  function ytEmbedBySearch(query){
-    return `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
-  }
-
-  function showYT(src, note){
-    $ytIframe.src = src;
-    $ytFrame.style.display = 'block';
-    if(note){
-      $ytModeNote.textContent = note;
-      $ytModeNote.style.display = 'block';
-    } else {
-      $ytModeNote.style.display = 'none';
-    }
-  }
-
-  async function startTrackDetect(){
-    if(currentAbsIndex < 0 || !stations[currentAbsIndex]){
-      alert('Primero reproduce una emisora.');
-      return;
-    }
-    if(!navigator.mediaDevices?.getUserMedia){
-      alert('Este navegador no soporta captura de micrófono.');
-      return;
-    }
-
-    try{
-      setDetectBusy(true, '🎙️ Grabando 10s…');
-      setTrackUIIdle('Escuchando…');
-
-      const blob = await recordMic(10);
-
-      setDetectBusy(true, '🧠 Reconociendo…');
-      const result = await auddRecognize(blob);
-
-      const station = stations[currentAbsIndex];
-      const title = (result.title || '—').trim();
-      const artist = (result.artist || '—').trim();
-      const album = result?.album ? `Álbum: ${result.album}` : '—';
-
-      lastTrack = {
-        recognizedAt: Date.now(),
-        station: { name: station?.name || '—', url: station?.url || '', group: station?.group || '' },
-        title, artist,
-        album: result?.album || '',
-        label: result?.label || '',
-        release_date: result?.release_date || '',
-        song_link: result?.song_link || '',
-        cover: pickCover(result),
-        query: buildQuery(result),
-        youtube: { videoId: null, mode: YT_API_KEY ? 'api' : 'basic' }
-      };
-
-      $trackCover.src = lastTrack.cover || '';
-      $trackTitle.textContent = title;
-      $trackArtist.textContent = artist;
-      $trackExtra.textContent =
-        [lastTrack.album ? `💿 ${lastTrack.album}` : '', lastTrack.release_date ? `📅 ${lastTrack.release_date}` : '']
-          .filter(Boolean).join(' · ') || '—';
-      $trackStation.textContent = `Emisora: ${station?.name || '—'}`;
-
-      $btnFindYT.disabled = false;
-      $btnSaveYT.disabled = false;
-
-      // auto buscar videoId si hay key
-      setDetectBusy(true, '🔎 Buscando en YouTube…');
-      let videoId = null;
-      if(YT_API_KEY){
-        videoId = await ytSearchVideoId(lastTrack.query);
-      }
-      if(videoId){
-        lastTrack.youtube.videoId = videoId;
-        showYT(ytEmbedByVideoId(videoId), '');
-      } else {
-        // modo básico embebido por búsqueda
-        const note = YT_API_KEY
-          ? 'No encontré video exacto. Mostrando resultados (modo básico).'
-          : 'Modo básico (sin YouTube API Key). Nota: el embed por búsqueda está marcado como deprecated en la IFrame API.';
-        showYT(ytEmbedBySearch(lastTrack.query), note);
-      }
-
-      setDetectBusy(false);
-    } catch(err){
-      console.error(err);
-      setDetectBusy(false);
-      setTrackUIIdle('No se pudo detectar');
-      alert(String(err?.message || err));
-    }
-  }
-
-  $btnDetectNow.addEventListener('click', startTrackDetect);
-
-  $btnFindYT.addEventListener('click', async () => {
-    if(!lastTrack) return;
-    // si tenemos videoId, embebemos exacto; si no, mostramos modo básico
-    if(lastTrack.youtube?.videoId){
-      showYT(ytEmbedByVideoId(lastTrack.youtube.videoId), '');
-      return;
-    }
-    const note = YT_API_KEY
-      ? 'Mostrando resultados (modo básico).'
-      : 'Modo básico (sin YouTube API Key). Nota: el embed por búsqueda está deprecated en IFrame API.';
-    showYT(ytEmbedBySearch(lastTrack.query), note);
-  });
-
-  $btnSaveYT.addEventListener('click', () => {
-    if(!lastTrack) return;
-    addYTDB({
-      id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
-      ...lastTrack
-    });
-    $btnSaveYT.textContent = '✅ Guardado';
-    setTimeout(()=>{ $btnSaveYT.textContent = '💾 Guardar'; }, 1200);
-  });
-
-  // ========= Modal YouTube DB =========
-  function openYTDB(){
-    renderYTDB();
-    $ytModal.classList.add('on');
-    $ytModal.setAttribute('aria-hidden','false');
-  }
-  function closeYTDB(){
-    $ytModal.classList.remove('on');
-    $ytModal.setAttribute('aria-hidden','true');
-  }
-
-  function renderYTDB(){
-    const db = loadYTDB();
-    $ytDbStats.textContent = `Items: ${db.length} · Último: ${db[0]?.recognizedAt ? fmtTime(db[0].recognizedAt) : '—'}`;
-
-    $ytDbList.innerHTML = '';
-    if(!db.length){
-      const empty = document.createElement('div');
-      empty.className = 'muted';
-      empty.textContent = 'Tu YouTube DB está vacía. Usa “Detectar ahora” y luego “Guardar”.';
-      $ytDbList.appendChild(empty);
-      return;
-    }
-
-    for(const it of db){
-      const row = document.createElement('div');
-      row.className = 'db-item';
-
-      const img = document.createElement('img');
-      img.className = 'cover';
-      img.src = it.cover || '';
-      img.alt = '';
-      img.onerror = () => { img.src = ''; };
-
-      const meta = document.createElement('div');
-      meta.className = 'track-meta';
-
-      const t1 = document.createElement('div');
-      t1.className = 'track-name';
-      t1.textContent = `${it.artist || '—'} — ${it.title || '—'}`;
-
-      const t2 = document.createElement('div');
-      t2.className = 'track-artist';
-      t2.textContent = `📻 ${it.station?.name || '—'} · ${fmtTime(it.recognizedAt)}`;
-
-      const t3 = document.createElement('div');
-      t3.className = 'track-sub';
-      t3.textContent = `🔎 ${it.query || ''}`;
-
-      meta.appendChild(t1);
-      meta.appendChild(t2);
-      meta.appendChild(t3);
-
-      const act = document.createElement('div');
-      act.className = 'db-actions';
-
-      const play = document.createElement('button');
-      play.textContent = '▶️ Play';
-      play.addEventListener('click', async () => {
-        // carga en el panel principal
-        lastTrack = it;
-        $trackCover.src = it.cover || '';
-        $trackTitle.textContent = it.title || '—';
-        $trackArtist.textContent = it.artist || '—';
-        $trackExtra.textContent =
-          [it.album ? `💿 ${it.album}` : '', it.release_date ? `📅 ${it.release_date}` : ''].filter(Boolean).join(' · ') || '—';
-        $trackStation.textContent = `Emisora: ${it.station?.name || '—'}`;
-        $btnFindYT.disabled = false;
-        $btnSaveYT.disabled = false;
-
-        if(it.youtube?.videoId){
-          showYT(ytEmbedByVideoId(it.youtube.videoId), '');
-        } else {
-          const note = YT_API_KEY
-            ? 'Mostrando resultados (modo básico).'
-            : 'Modo básico (sin YouTube API Key). Nota: el embed por búsqueda está deprecated en IFrame API.';
-          showYT(ytEmbedBySearch(it.query || 'music'), note);
-        }
-        closeYTDB();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-
-      const del = document.createElement('button');
-      del.textContent = '🗑️ Delete';
-      del.addEventListener('click', () => {
-        const next = loadYTDB().filter(x => x.id !== it.id);
-        saveYTDB(next);
-        renderYTDB();
-      });
-
-      act.appendChild(play);
-      act.appendChild(del);
-
-      row.appendChild(img);
-      row.appendChild(meta);
-      row.appendChild(act);
-
-      $ytDbList.appendChild(row);
-    }
-  }
-
-  $btnOpenYTDB.addEventListener('click', openYTDB);
-  $btnCloseYTDB.addEventListener('click', closeYTDB);
-  $ytModal.addEventListener('click', (e)=>{ if(e.target === $ytModal) closeYTDB(); });
-
-  $btnExportYTDB.addEventListener('click', () => {
-    const db = loadYTDB();
-    downloadBlob(JSON.stringify(db, null, 2), 'youtube-db.json', 'application/json');
-  });
-
-  $btnClearYTDB.addEventListener('click', () => {
-    if(!confirm('¿Seguro que deseas vaciar la YouTube DB?')) return;
-    saveYTDB([]);
-    renderYTDB();
-  });
   // ========= Equalizer REAL (WebAudio) =========
   let audioCtx = null;
   let analyser = null;
@@ -1615,20 +1494,6 @@
     setCuervoReactive(isPlaying ? 0.25 : 0);
   });
 
-  $q.addEventListener('input', applyFilterDebounced);
-  $btnReset.addEventListener('click', () => { $q.value=''; applyFilterDebounced(); });
-
-  $btnOnlyFavs.addEventListener('click', () => { onlyFavs = true; applyFilterDebounced(); });
-  $btnAll.addEventListener('click', () => { onlyFavs = false; applyFilterDebounced(); });
-  $btnReload.addEventListener('click', () => { startLoad(); });
-
-  $btnParty.addEventListener('click', () => {
-    isParty = !isParty;
-    $btnParty.classList.toggle('party-on', isParty);
-    $btnParty.textContent = isParty ? '🌈 Party ON' : '🌈 Party';
-    setCuervoReactive(isPlaying ? 0.35 : 0);
-  });
-
   $btnExportM3U.addEventListener('click', exportM3U);
   $btnExportJSON.addEventListener('click', exportJSON);
 
@@ -1636,6 +1501,13 @@
     showLogos = $toggleLogos.checked;
     localStorage.setItem(LS_LOGOS, showLogos ? '1':'0');
     updateVirtual();
+  });
+
+  $btnParty.addEventListener('click', () => {
+    isParty = !isParty;
+    $btnParty.classList.toggle('party-on', isParty);
+    $btnParty.textContent = isParty ? '🌈 Party ON' : '🌈 Party';
+    setCuervoReactive(isPlaying ? 0.35 : 0);
   });
 
   // ========= Inicio =========
@@ -1648,7 +1520,6 @@
     $spacer.style.height = '0px';
     $count.textContent = '0';
     $status.textContent = 'Cargando…';
-    setTrackUIIdle('—');
 
     const src = encodeUrlMaybe(DEFAULT_PLAYLIST_URL);
     worker.postMessage({ url: src, batchSize: BATCH_SIZE });
@@ -1670,11 +1541,12 @@
     startLoad();
     createVizBars(48);
     setCuervoReactive(0);
+    setTrackUI('');
     renderYTDB();
+    setManualState();
   });
 
 })();
 </script>
-
 </body>
 </html>
